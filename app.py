@@ -1,4 +1,5 @@
 import selenium
+import pathlib
 import os
 import json
 import sys
@@ -7,51 +8,54 @@ import time
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
+
+
 import db_class
 import snippet_class
 
 with open('config.json', 'r') as json_file:
-    config = json.load(json_file)
-    
+	config = json.load(json_file)
+	
 db= db_class.db(config)
 db.start()
 
 chromedriver = '/usr/local/bin/chromedriver'
+chromedriver = os.getcwd()+'/chromedriver'
 
 try:
 
-    with open('browser_session.json', 'r') as json_file:
-        data = json.load(json_file)
+	with open('browser_session.json', 'r') as json_file:
+		data = json.load(json_file)
 
-    url = data["url"]
-    session_id = data["session_id"]
+	url = data["url"]
+	session_id = data["session_id"]
+	
+	driver = webdriver.Remote(command_executor=url,desired_capabilities={})
+	driver.close() # Close dummy browser
+	
+	driver.session_id = session_id
 
-    driver = webdriver.Remote(command_executor=url,desired_capabilities={})
-    driver.close() # Close dummy browser
-    
-    driver.session_id = session_id
+	title = driver.title
+	url = driver.current_url
 
-    title = driver.title
-    url = driver.current_url
-
-    print(f"{title}: {url}")
-    print("Reuse Browser")
+	print(f"{title}: {url}")
+	print("Reuse Browser")
 
 except:
-    
-    driver = webdriver.Chrome(chromedriver)
+	
+	driver = webdriver.Chrome(chromedriver)
+	
+	data = {
+		"url" : driver.command_executor._url ,
+		"session_id" : driver.session_id
+	}
 
-    data = {
-        "url" : driver.command_executor._url ,
-        "session_id" : driver.session_id
-    }
-
-    with open('browser_session.json', 'w') as outfile:
-        json.dump(data, outfile)
-    
-    print("New Browser")
-    
-    driver.get('https://web.whatsapp.com')
+	with open('browser_session.json', 'w') as outfile:
+		json.dump(data, outfile)
+	
+	print("New Browser")
+	
+	driver.get('https://web.whatsapp.com')
 
 snippet = snippet_class.snippet(driver)
 
@@ -65,54 +69,54 @@ loop = True
 
 while loop:
 
-    print("reading...")
-    response = db.get_next_job()
+	print("reading...")
+	response = db.get_next_job()
 
-    if response["meta"]["code"]!=200:
-        payload= {
-            "code":response["meta"]["code"],
-            "error_message":response["meta"]["error_message"],
-            "snippet":"",
-            "output_data":""
-        }
+	if response["meta"]["code"]!=200:
+		payload= {
+			"code":response["meta"]["code"],
+			"error_message":response["meta"]["error_message"],
+			"snippet":"",
+			"output_data":""
+		}
 
-        db.add_output(payload)
-    
-    if "job" in response:
+		db.add_output(payload)
+	
+	if "job" in response:
 
-        job = response["job"]
+		job = response["job"]
 
-        print("running...")
-        print(job)
+		print("running...")
+		print(job)
 
-        response = snippet.run(job["snippet"],job["input_data"])
+		response = snippet.run(job["snippet"],job["input_data"])
 
-        if response["meta"]["code"]!=200:
-            payload= {
-                "code":response["meta"]["code"],
-                "error_message":response["meta"]["error_message"],
-                "snippet":job["snippet"],
-                "output_data":""
-            }
-        else:
-            payload= {
-                "code":response["meta"]["code"],
-                "error_message":'',
-                "snippet":job["snippet"],
-                "output_data":response.get("output_data")
-            }
+		if response["meta"]["code"]!=200:
+			payload= {
+				"code":response["meta"]["code"],
+				"error_message":response["meta"]["error_message"],
+				"snippet":job["snippet"],
+				"output_data":""
+			}
+		else:
+			payload= {
+				"code":response["meta"]["code"],
+				"error_message":'',
+				"snippet":job["snippet"],
+				"output_data":response.get("output_data")
+			}
 
-        print("OUTPUT DATA:")
-        print(response.get("output_data"))
-        db.add_output(payload)
+		print("OUTPUT DATA:")
+		print(response.get("output_data"))
+		db.add_output(payload)
 
-        print("removing...")
-        db.remove_job(job['id'])
+		print("removing...")
+		db.remove_job(job['id'])
 
-        print(payload)
-        
-    print("wait...")
-    time.sleep(config['number_of_seconds_between_job_updates'])
+		print(payload)
+		
+	print("wait...")
+	time.sleep(config['number_of_seconds_between_job_updates'])
 
 """
 name = "Hermana" # Name of the user or group
