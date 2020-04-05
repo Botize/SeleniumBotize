@@ -3,27 +3,34 @@ import pathlib
 import os
 import json
 import sys
-
 import time
+
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-
-
+from os import path
 
 import db_class
 import snippet_class
 
+# Check 'chromedriver'
+chromedriver_path = os.getcwd()+'/chromedriver'
+	
+if (not path.exists(chromedriver_path)):
+	print("Error: 'ChromeDriver' not found.\n\n'ChromeDriver' is a separate executable that Selenium WebDriver uses to control Chrome. Make sure you have downloaded it from https://sites.google.com/a/chromium.org/chromedriver/downloads and saved into BotizeSelenium folder.")
+	sys.exit()
+
+# Open configuration
 with open('config.json', 'r') as json_file:
 	config = json.load(json_file)
 	
+# Connect to database
 db= db_class.db(config)
 db.start()
 
-chromedriver = '/usr/local/bin/chromedriver'
-chromedriver = os.getcwd()+'/chromedriver'
-
+# Open a new browser or reuse current browser
 try:
 
+	# Reuse current Browser
 	with open('browser_session.json', 'r') as json_file:
 		data = json.load(json_file)
 
@@ -38,12 +45,10 @@ try:
 	title = driver.title
 	url = driver.current_url
 
-	print(f"{title}: {url}")
-	print("Reuse Browser")
-
 except:
 	
-	driver = webdriver.Chrome(chromedriver)
+	# Open a new Browser
+	driver = webdriver.Chrome(chromedriver_path)
 	
 	data = {
 		"url" : driver.command_executor._url ,
@@ -53,8 +58,6 @@ except:
 	with open('browser_session.json', 'w') as outfile:
 		json.dump(data, outfile)
 	
-	print("New Browser")
-	
 	driver.get('https://web.whatsapp.com')
 
 snippet = snippet_class.snippet(driver)
@@ -62,14 +65,12 @@ snippet = snippet_class.snippet(driver)
 loop = True
 
 # Add fake job
-#db.add_job("""print(5+1)
-#data_to_save=json.dumps({"x":1,"y":2})
-#save_data(data_to_save)
-#""")
+#db.add_job("print(5+1)")
+
+print ("Botize Selenium running.")
 
 while loop:
 
-	print("reading...")
 	response = db.get_next_job()
 
 	if response["meta"]["code"]!=200:
@@ -86,8 +87,7 @@ while loop:
 
 		job = response["job"]
 
-		print("running...")
-		print(job)
+		print("Running job...")
 
 		response = snippet.run(job["snippet"],job["input_data"])
 
@@ -106,16 +106,10 @@ while loop:
 				"output_data":response.get("output_data")
 			}
 
-		print("OUTPUT DATA:")
-		print(response.get("output_data"))
 		db.add_output(payload)
 
-		print("removing...")
 		db.remove_job(job['id'])
-
-		print(payload)
 		
-	print("wait...")
 	time.sleep(config['number_of_seconds_between_job_updates'])
 
 """
