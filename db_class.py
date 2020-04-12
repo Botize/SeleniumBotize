@@ -38,11 +38,11 @@ class db:
 		try:
 			self.create_db()
 			self.connect_db()
-			#self.drop_tables()
+			self.drop_tables()
 			self.create_tables()
 			#self.show_tables()
 			#self.add_job("mi primer snippet")
-			self.read_in()
+			#self.read_in()
 			#self.read_out()
 			return
 
@@ -65,8 +65,8 @@ class db:
 	def add_output(self,params):
 
 		cursor = self.conn.cursor()
-		sql = "INSERT INTO `out` (code,error_message,snippet,output_data) VALUES (%s,%s,%s,%s)"
-		val = (params["code"],params["error_message"],params["snippet"],params["output_data"])
+		sql = "INSERT INTO `out` (code,error_message,account,task_id,snippet,output_data) VALUES (%s,%s,%s,%s,%s,%s)"
+		val = (params["code"],params["error_message"],params["account"],params["task_id"],params["snippet"],params["output_data"])
 		cursor.execute(sql, val)
 
 		self.conn.commit()
@@ -84,7 +84,6 @@ class db:
 
 		if row == None:
 			return {"meta":{"code":200}}
-		
 
 		return {"meta":{"code":200},"job":row}
 	
@@ -157,7 +156,9 @@ class db:
 		cursor.execute("""CREATE TABLE IF NOT EXISTS `in` (
 			`id` int NOT NULL AUTO_INCREMENT,
 			`timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			`snippet` TEXT,
+			`account` TINYTEXT NOT NULL,
+			`task_id` INT NOT NULL,
+			`snippet` TEXT NOT NULL,
 			`input_data` TEXT,
 
 			PRIMARY KEY (`id`)
@@ -167,9 +168,11 @@ class db:
 		cursor.execute("""CREATE TABLE IF NOT EXISTS `out` (
 			`id` int NOT NULL AUTO_INCREMENT,
 			`timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			`code` int,
+			`code` int NOT NULL,
 			`error_message` TEXT,
-			`snippet` TEXT,
+			`account` TINYTEXT NOT NULL,
+			`task_id` INT NOT NULL,
+			`snippet` TEXT NOT NULL,
 			`input_data` TEXT,
 
 			`output_data` TEXT,

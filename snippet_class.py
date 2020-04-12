@@ -22,10 +22,14 @@ class snippet:
 
         try:
 
+            """
             if input_data!="":
                 self.safe_dict["event"] = json.loads(input_data)
             else:
                 self.safe_dict["event"]={}
+            """
+            
+            self.safe_dict["event"] = input_data
 
             snippet=snippet+"\nresponse=handler(event,context)\nsave_data(response)"
             exec(snippet,self.safe_dict)
