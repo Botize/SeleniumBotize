@@ -11,6 +11,8 @@ from os import path
 
 import db_class
 import snippet_class
+import botize_class
+import job_class
 
 # Init
 context={}
@@ -62,13 +64,15 @@ except:
 		json.dump(data, outfile)
 
 snippet = snippet_class.snippet(driver)
+botize = botize_class.botize()
+job = job_class.job()
 
 loop = True
 
 # Add fake job
 #db.add_job("print(5+1)")
 
-print ("Botize Selenium running.")
+print ("Browser Ready! Waiting for jobs.\n")
 
 while loop:
 
@@ -86,29 +90,38 @@ while loop:
 	
 	if "job" in response:
 
-		job = response["job"]
+		job_item = job.make_job(response["job"])
+	
+		print("[JOB ID{}:@{}:#{}]".format(job_item['id'],job_item['account'],job_item['task_id']))
 
-		print("Running job...")
-
-		response = snippet.run(job["snippet"],job["input_data"],context)
+		response = snippet.run(job_item["snippet"],job_item["input_data"],context)
 
 		if response["meta"]["code"]!=200:
 			payload= {
 				"code":response["meta"]["code"],
 				"error_message":response["meta"]["error_message"],
-				"snippet":job["snippet"],
+				"account":job_item["account"],
+				"task_id":job_item["task_id"],
+				"snippet":job_item["snippet"],
 				"output_data":""
 			}
 		else:
 			payload= {
 				"code":response["meta"]["code"],
 				"error_message":'',
-				"snippet":job["snippet"],
+				"account":job_item["account"],
+				"task_id":job_item["task_id"],
+				"snippet":job_item["snippet"],
 				"output_data":response.get("output_data")
 			}
 
+			botize.resume(job_item["account"],job_item["task_id"],job_item["input_data"]["mb_run_id"],response.get("output_data"))
+			
+
 		db.add_output(payload)
 
-		db.remove_job(job['id'])
+		db.remove_job(job_item['id'])
+
+		print("Waiting for next job...")
 		
 	time.sleep(config['number_of_seconds_between_job_updates'])
