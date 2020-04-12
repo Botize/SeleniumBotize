@@ -38,7 +38,7 @@ class db:
 		try:
 			self.create_db()
 			self.connect_db()
-			self.drop_tables()
+			#self.drop_tables()
 			self.create_tables()
 			#self.show_tables()
 			#self.add_job("mi primer snippet")
