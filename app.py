@@ -77,7 +77,7 @@ print ("Browser Ready! Waiting for jobs.\n")
 while loop:
 
 	response = db.get_next_job()
-
+	
 	if response["meta"]["code"]!=200:
 		payload= {
 			"code":response["meta"]["code"],
@@ -91,8 +91,10 @@ while loop:
 	if "job" in response:
 
 		job_item = job.make_job(response["job"])
-	
+
 		print("[JOB ID{}:@{}:#{}]".format(job_item['id'],job_item['account'],job_item['task_id']))
+
+		db.remove_job(job_item['id'])
 
 		response = snippet.run(job_item["snippet"],job_item["input_data"],context)
 
@@ -120,7 +122,7 @@ while loop:
 
 		db.add_output(payload)
 
-		db.remove_job(job_item['id'])
+		# db.remove_job(job_item['id'])
 
 		print("Waiting for next job...")
 		
