@@ -1,5 +1,9 @@
 config.json
 chromedriver
+promovideo
+youtube_upload
+app_promovideo.py
+.vscode
 bin/
 # Byte-compiled / optimized / DLL files
 __pycache__/

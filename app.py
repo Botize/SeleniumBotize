@@ -53,7 +53,17 @@ try:
 except:
 	
 	# Open a new Browser
-	driver = webdriver.Chrome(chromedriver_path)
+
+	if config["chrome_profile_path"]!="":
+		# Uses a Chrome Profile
+		options = webdriver.ChromeOptions() 
+		options.add_argument("user-data-dir={}".format(config["chrome_profile_path"])) #Path to your chrome profile
+		driver = webdriver.Chrome(executable_path=chromedriver_path, options=options)
+		#print("Profile: {}".format(config["chrome_profile_path"]))
+	else:
+		# Without Chrome Profile
+		driver = webdriver.Chrome(chromedriver_path)
+
 	
 	data = {
 		"url" : driver.command_executor._url ,

@@ -42,12 +42,25 @@ print("\n3. This app will check your database every 5 seconds to search for new 
 
 number_of_seconds_between_job_updates = input("Enter the number of seconds waiting between job updates (default 5): ") or 5
 
+print("""
+4. If a site stores cookies or any information you want to keep in each session, you need to specify a Chrome profile path.
+
+To know which path you have to use, open the browser and access to:  chrome://version
+
+The path will be indicated in the "Profile Path" parameter. Be sure to replace the default profile ("default") of the path with the profile name you want to use with Selenium.
+
+e.g. /Users/{username}/Library/Application Support/Google/Chrome/My-Profile
+""")
+
+chrome_profile_path = input("Chrome Profile Path to use (default: no profiles are used): ") or ""
+
 config = {
 	"db_host":db_host,
 	"db_user":db_user,
 	"db_password":db_password,
 	"db_name":db_name,
-	"number_of_seconds_between_job_updates" : number_of_seconds_between_job_updates
+	"number_of_seconds_between_job_updates" : number_of_seconds_between_job_updates,
+	"chrome_profile_path":chrome_profile_path
 }
 
 try:
