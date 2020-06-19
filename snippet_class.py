@@ -38,9 +38,9 @@ class snippet:
                 "meta":{
                     "code":200
                 },
-                "output_data":self.output_data
+                "output_data":self.output_data,
+                "data_to_save":self.data_to_save
             }
-            return self.response(200)
 
         except Exception as e:
             print("Error running snippet: {}".format(e))
@@ -48,7 +48,14 @@ class snippet:
     
     def save_data(self,data):
         
+        self.data_to_save = None
+
         try:
+        
+            if "data_to_save" in data:
+                self.data_to_save = json.dumps(data["data_to_save"])
+                del data['data_to_save']
+
             self.output_data=json.dumps(data)
 
         except ValueError as e:

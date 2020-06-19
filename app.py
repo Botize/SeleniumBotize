@@ -127,7 +127,7 @@ while loop:
 				"output_data":response.get("output_data")
 			}
 
-			botize.resume(job_item["account"],job_item["task_id"],job_item["input_data"]["mb_run_id"],response.get("output_data"))
+			botize.resume(job_item["account"],job_item["task_id"],job_item["input_data"]["mb_run_id"],response.get("output_data"),response.get("data_to_save"))
 			
 
 		db.add_output(payload)
